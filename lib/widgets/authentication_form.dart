@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
 
 class AuthenticationForm extends StatefulWidget {
-  const AuthenticationForm({super.key});
+  final void Function(
+    String email,
+    String password,
+    String username,
+    bool isLogin,
+    BuildContext buildContext,
+  ) submitFunction;
+
+  final bool isLoading;
+
+  const AuthenticationForm(
+      {super.key, required this.submitFunction, required this.isLoading});
 
   @override
   State<AuthenticationForm> createState() => _AuthenticationFormState();
@@ -19,10 +30,13 @@ class _AuthenticationFormState extends State<AuthenticationForm> {
     if (isValid) {
       _formKey.currentState!.save();
       FocusScope.of(context).unfocus();
-      print(_userEmail);
-      print(_userName);
-      print(_userPassword);
-      //Devo inviare la richiesta a firebase
+      widget.submitFunction(
+        _userEmail!.trim(),
+        _userPassword!.trim(),
+        _userName!.trim(),
+        _isLogin,
+        context,
+      );
     }
   }
 
@@ -69,6 +83,7 @@ class _AuthenticationFormState extends State<AuthenticationForm> {
                         if (value!.isEmpty || value.length < 4) {
                           return 'Please enter at least 4 characters';
                         }
+                        return null;
                       },
                       onSaved: (newValue) {
                         _userName = newValue;
@@ -101,24 +116,27 @@ class _AuthenticationFormState extends State<AuthenticationForm> {
                     obscureText: true,
                   ),
                   const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: _trySubmit,
-                    child: Text(_isLogin ? 'Login' : 'SignUp'),
-                  ),
-                  TextButton(
-                    style: const ButtonStyle(
-                      foregroundColor:
-                          MaterialStatePropertyAll<Color>(Colors.indigo),
+                  if (widget.isLoading) const CircularProgressIndicator(),
+                  if (!widget.isLoading)
+                    ElevatedButton(
+                      onPressed: _trySubmit,
+                      child: Text(_isLogin ? 'Login' : 'SignUp'),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isLogin = !_isLogin;
-                      });
-                    },
-                    child: Text(_isLogin
-                        ? 'Create new account'
-                        : 'I already have an account'),
-                  ),
+                  if (!widget.isLoading)
+                    TextButton(
+                      style: const ButtonStyle(
+                        foregroundColor:
+                            MaterialStatePropertyAll<Color>(Colors.indigo),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isLogin = !_isLogin;
+                        });
+                      },
+                      child: Text(_isLogin
+                          ? 'Create new account'
+                          : 'I already have an account'),
+                    ),
                 ],
               ),
             ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import '../widgets/authentication_form.dart';
 
 class AuthenticationScreen extends StatefulWidget {
@@ -9,11 +12,74 @@ class AuthenticationScreen extends StatefulWidget {
 }
 
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
+  final _authentication = FirebaseAuth.instance;
+  bool _isLoading = false;
+
+  void _submitAuthenticationForm(
+    String email,
+    String password,
+    String username,
+    bool isLogin,
+    BuildContext buildContext,
+  ) async {
+    UserCredential userCredential;
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      if (isLogin) {
+        userCredential = await _authentication.signInWithEmailAndPassword(
+            email: email, password: password);
+      } else {
+        userCredential = await _authentication.createUserWithEmailAndPassword(
+            email: email, password: password);
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+          'username': username,
+          'email': email,
+        });
+      }
+    } on PlatformException catch (error) {
+      String message = 'An error occurred, please check your credentials!';
+      if (error.message != null) {
+        message = error.message!;
+      }
+      ScaffoldMessenger.of(buildContext).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Theme.of(buildContext).errorColor,
+        ),
+      );
+      setState(() {
+        _isLoading = false;
+      });
+    } on FirebaseException catch (error) {
+      String message = 'An error occurred, please check your credentials!';
+      if (error.message != null) {
+        message = error.message!;
+      }
+      ScaffoldMessenger.of(buildContext).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Theme.of(buildContext).errorColor,
+        ),
+      );
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primary,
-      body: const AuthenticationForm(),
+      body: AuthenticationForm(
+        submitFunction: _submitAuthenticationForm,
+        isLoading: _isLoading,
+      ),
     );
   }
 }
