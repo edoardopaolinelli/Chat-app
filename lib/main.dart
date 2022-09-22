@@ -1,6 +1,8 @@
-import 'package:chat_app/screens/authentication_screen.dart';
+import 'package:chat_app/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import './screens/authentication_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +47,15 @@ class MyApp extends StatelessWidget {
           ), 
         ), */
       ),
-      home: const AuthenticationScreen(),
+      home: StreamBuilder(
+        builder: (context, userSnapshot) {
+          if (userSnapshot.hasData) {
+            return const ChatScreen();
+          }
+          return const AuthenticationScreen();
+        },
+        stream: FirebaseAuth.instance.authStateChanges(),
+      ),
     );
   }
 }
