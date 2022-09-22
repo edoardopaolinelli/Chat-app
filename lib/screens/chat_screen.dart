@@ -1,6 +1,6 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
@@ -11,25 +11,33 @@ class ChatScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('ChatScreen'),
       ),
-      body: ListView.builder(
-        itemCount: 10,
-        itemBuilder: (context, index) => Container(
-          padding: const EdgeInsets.all(8),
-          child: const Text('This works'),
-        ),
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance
+            .collection('chats/2lnJaeWOImsZVeH7NDSb/messages')
+            .snapshots(),
+        builder: (context, streamSnapshot) {
+          if (streamSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          final documents = streamSnapshot.data!.docs;
+          return ListView.builder(
+            itemCount: streamSnapshot.data!.docs.length,
+            itemBuilder: (context, index) => Container(
+              padding: const EdgeInsets.all(8),
+              child: Text(documents[index]['text']),
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
-        onPressed: () async {
-          await Firebase.initializeApp();
+        onPressed: () {
           FirebaseFirestore.instance
               .collection('chats/2lnJaeWOImsZVeH7NDSb/messages')
-              .snapshots()
-              .listen((data) {
-            //print(data.docs[0]['text'] as String);
-            data.docs.forEach((document) {
-              print(document['text']);
-            });
+              .add({
+            'text': 'This was added by clicking the add icon',
           });
         },
       ),
