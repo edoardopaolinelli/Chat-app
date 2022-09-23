@@ -17,6 +17,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'FlutterChat',
       theme: ThemeData(
+        textTheme: const TextTheme(
+          headline1: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.indigo,
         colorScheme: ColorScheme.fromSwatch(
           primarySwatch: Colors.indigo,
@@ -39,13 +42,6 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        /* buttonTheme: ButtonTheme.of(context).copyWith(
-          buttonColor: Colors.indigo,
-          textTheme: ButtonTextTheme.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(1.0),
-          ), 
-        ), */
       ),
       home: StreamBuilder(
         builder: (context, userSnapshot) {
